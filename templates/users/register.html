@@ -1,0 +1,62 @@
+{% extends "users/basic.html" %}
+
+{% block title %}Create Account - BookMySeat{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center py-4">
+    <div class="col-md-6">
+      <div class="card shadow-lg border-0" style="border-radius: 14px; overflow: hidden;">
+        <div class="card-header bg-dark text-white text-center py-3">
+          <h4 class="font-weight-bold mb-0" style="font-family: 'Outfit', sans-serif;">
+            <i class="fas fa-user-plus text-danger me-2 mr-2" style="color: #f84464 !important;"></i> Create Your Account
+          </h4>
+          <small class="text-muted">Join BookMySeat for instant movie ticket booking</small>
+        </div>
+        <div class="card-body p-4">
+          <form method="POST" novalidate>
+            {% csrf_token %}
+            {% for field in form %}
+              <div class="form-group mb-3">
+                <label for="{{ field.id_for_label }}" class="small font-weight-bold text-dark mb-1">
+                  {{ field.label }}
+                  {% if field.field.required %}<span class="text-danger">*</span>{% endif %}
+                </label>
+                <div class="input-group">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text bg-light border-right-0">
+                      <i class="fas fa-{% if field.name == 'username' %}user{% elif field.name == 'email' %}envelope{% else %}lock{% endif %} text-muted"></i>
+                    </span>
+                  </div>
+                  {{ field }}
+                </div>
+                {% if field.help_text %}
+                  <small class="form-text text-muted small mt-1">{{ field.help_text|safe }}</small>
+                {% endif %}
+                {% for error in field.errors %}
+                  <small class="text-danger d-block mt-1"><i class="fas fa-exclamation-circle mr-1"></i> {{ error }}</small>
+                {% endfor %}
+              </div>
+            {% endfor %}
+
+            <button type="submit" class="btn btn-bms btn-block btn-lg mt-4">
+              <i class="fas fa-user-plus me-1 mr-1"></i> Create Account
+            </button>
+          </form>
+        </div>
+        <div class="card-footer bg-light text-center py-3">
+          <p class="mb-0 small text-muted">
+            Already have an account? <a href="{% url 'login' %}" class="text-danger font-weight-bold" style="color: #f84464 !important;">Log In Here</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  $(document).ready(function() {
+    $('input').addClass('form-control border-left-0');
+  });
+</script>
+{% endblock %}

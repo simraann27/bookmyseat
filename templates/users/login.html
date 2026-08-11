@@ -1,0 +1,75 @@
+{% extends "users/basic.html" %}
+
+{% block title %}Log In - BookMySeat{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center py-4">
+    <div class="col-md-5">
+      <div class="card shadow-lg border-0" style="border-radius: 14px; overflow: hidden;">
+        <div class="card-header bg-dark text-white text-center py-3">
+          <h4 class="font-weight-bold mb-0" style="font-family: 'Outfit', sans-serif;">
+            <i class="fas fa-sign-in-alt text-danger me-2 mr-2" style="color: #f84464 !important;"></i> Welcome Back
+          </h4>
+          <small class="text-muted">Sign in to manage your movie tickets</small>
+        </div>
+        <div class="card-body p-4">
+          <form method="POST" action="{% url 'login' %}">
+            {% csrf_token %}
+
+            <div class="form-group mb-3">
+              <label for="{{ form.username.id_for_label }}" class="small font-weight-bold text-dark mb-1">Username</label>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text bg-light border-right-0"><i class="fas fa-user text-muted"></i></span>
+                </div>
+                <input type="text" name="username" id="{{ form.username.id_for_label }}" class="form-control border-left-0" placeholder="Enter your username" required>
+              </div>
+            </div>
+
+            <div class="form-group mb-4">
+              <label for="{{ form.password.id_for_label }}" class="small font-weight-bold text-dark mb-1">Password</label>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text bg-light border-right-0"><i class="fas fa-lock text-muted"></i></span>
+                </div>
+                <input type="password" name="password" id="{{ form.password.id_for_label }}" class="form-control border-left-0 border-right-0" placeholder="Enter your password" required>
+                <div class="input-group-append">
+                  <button class="btn btn-outline-secondary" type="button" id="togglePasswordBtn">
+                    <i class="fas fa-eye" id="toggleIcon"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-bms btn-block btn-lg">
+              <i class="fas fa-sign-in-alt me-1 mr-1"></i> Log In
+            </button>
+          </form>
+        </div>
+        <div class="card-footer bg-light text-center py-3">
+          <p class="mb-0 small text-muted">
+            Don't have an account? <a href="{% url 'register' %}" class="text-danger font-weight-bold" style="color: #f84464 !important;">Sign Up Now</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  $(document).ready(function() {
+    $('#togglePasswordBtn').on('click', function() {
+      var passwordInput = $('#{{ form.password.id_for_label }}');
+      var icon = $('#toggleIcon');
+      if (passwordInput.attr('type') === 'password') {
+        passwordInput.attr('type', 'text');
+        icon.removeClass('fa-eye').addClass('fa-eye-slash');
+      } else {
+        passwordInput.attr('type', 'password');
+        icon.removeClass('fa-eye-slash').addClass('fa-eye');
+      }
+    });
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,135 @@
+{% extends "users/basic.html" %}
+
+{% block title %}Theaters & Showtimes for {{ movie.name }} - BookMySeat{% endblock %}
+
+{% block content %}
+<style>
+  .movie-header-banner {
+    background: #1f2533;
+    color: #ffffff;
+    border-radius: 12px;
+    padding: 30px;
+    margin-bottom: 30px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  }
+  .theater-card {
+    background: #ffffff;
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    margin-bottom: 20px;
+    padding: 24px;
+    transition: all 0.2s ease;
+  }
+  .theater-card:hover {
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+  }
+  .amenity-badge {
+    font-size: 0.8rem;
+    color: #555e75;
+    background: #f0f2f7;
+    padding: 4px 10px;
+    border-radius: 6px;
+    margin-right: 8px;
+    margin-bottom: 6px;
+    display: inline-block;
+  }
+  .showtime-pill {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 1.5px solid #28a745;
+    border-radius: 8px;
+    padding: 10px 22px;
+    background: #f8fff9;
+    color: #28a745;
+    font-weight: 600;
+    text-decoration: none !important;
+    transition: all 0.2s ease;
+    min-width: 140px;
+  }
+  .showtime-pill:hover {
+    background: #28a745;
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+  }
+  .showtime-pill .time-str {
+    font-size: 1rem;
+    font-weight: 700;
+  }
+  .showtime-pill .price-str {
+    font-size: 0.8rem;
+    opacity: 0.85;
+  }
+</style>
+
+<div class="container py-4">
+  <!-- Movie Summary Banner -->
+  <div class="movie-header-banner">
+    <div class="row align-items-center">
+      <div class="col-md-3 text-center text-md-left mb-3 mb-md-0">
+        {% if movie.image %}
+          <img src="{{ movie.image.url }}" class="img-fluid rounded shadow" alt="{{ movie.name }}" style="max-height: 220px; object-fit: cover;">
+        {% else %}
+          <img src="https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=400" class="img-fluid rounded shadow" alt="{{ movie.name }}" style="max-height: 220px; object-fit: cover;">
+        {% endif %}
+      </div>
+      <div class="col-md-9">
+        <div class="d-flex align-items-center flex-wrap mb-2">
+          <h2 class="font-weight-bold mb-0 mr-3">{{ movie.name }}</h2>
+          <span class="badge badge-warning text-dark font-weight-bold px-2 py-1"><i class="fas fa-star text-dark me-1 mr-1"></i> {{ movie.rating }}/10</span>
+        </div>
+        <p class="text-light opacity-90 mb-3">{{ movie.description|default:"Experience the magic of cinema with high-quality projection and immersive sound." }}</p>
+        <p class="small text-muted mb-0"><i class="fas fa-users text-danger me-1 mr-1" style="color: #f84464 !important;"></i> <strong>Starring:</strong> {{ movie.cast }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section Title -->
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="font-weight-bold text-dark mb-0" style="font-family: 'Outfit', sans-serif;">Available Theaters & Showtimes</h4>
+    <span class="small text-muted"><i class="fas fa-ticket-alt text-success me-1 mr-1"></i> Select a showtime to choose seats</span>
+  </div>
+
+  <!-- Theater List -->
+  {% if theaters %}
+    {% for theater in theaters %}
+    <div class="theater-card">
+      <div class="row align-items-center">
+        <div class="col-md-6 mb-3 mb-md-0">
+          <h5 class="font-weight-bold text-dark mb-2">
+            <i class="fas fa-building text-danger me-2 mr-2" style="color: #f84464 !important;"></i> {{ theater.name }} Cinema
+          </h5>
+          <div>
+            <span class="amenity-badge"><i class="fas fa-mobile-alt text-success me-1 mr-1"></i> M-Ticket</span>
+            <span class="amenity-badge"><i class="fas fa-utensils text-warning me-1 mr-1"></i> Food & Beverage</span>
+            <span class="amenity-badge"><i class="fas fa-parking text-primary me-1 mr-1"></i> Parking</span>
+            <span class="amenity-badge"><i class="fas fa-headphones text-info me-1 mr-1"></i> Dolby Atmos</span>
+          </div>
+        </div>
+        <div class="col-md-6 text-md-right">
+          <div class="d-inline-flex flex-column align-items-md-end">
+            <a href="{% url 'book_seats' theater.id %}" class="showtime-pill">
+              <span class="time-str">{{ theater.time|date:"h:i A" }}</span>
+              <span class="price-str">₹{{ theater.price|floatformat:0 }} per seat</span>
+            </a>
+            <small class="text-muted mt-2 d-block"><i class="fas fa-calendar-alt me-1 mr-1"></i> {{ theater.time|date:"F d, Y" }}</small>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="card p-5 text-center border-0 shadow-sm rounded-lg">
+      <i class="fas fa-store-slash fa-4x text-muted mb-3"></i>
+      <h5>No showtimes currently scheduled for this movie.</h5>
+      <p class="text-muted">Please check back later or select another movie.</p>
+      <div class="mt-2">
+        <a href="{% url 'movie_list' %}" class="btn btn-bms btn-sm">Back to Movies List</a>
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

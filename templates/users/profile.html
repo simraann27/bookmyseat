@@ -1,0 +1,159 @@
+{% extends "users/basic.html" %}
+
+{% block title %}My Profile & Tickets - BookMySeat{% endblock %}
+
+{% block content %}
+<style>
+  .profile-card {
+    border-radius: 12px;
+    border: none;
+    background: #ffffff;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+  }
+  .ticket-card {
+    border-radius: 12px;
+    border: 1px solid #e9ecef;
+    background: #ffffff;
+    transition: all 0.2s ease;
+    overflow: hidden;
+  }
+  .ticket-card:hover {
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+  }
+  .ticket-stub-header {
+    background: #1f2533;
+    color: #ffffff;
+    padding: 12px 18px;
+  }
+  .status-badge-booked {
+    background-color: #28a745;
+    color: #ffffff;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 12px;
+  }
+  .status-badge-cancelled {
+    background-color: #6c757d;
+    color: #ffffff;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 12px;
+  }
+</style>
+
+<div class="container py-4">
+  <div class="row">
+    <!-- Profile Info & Actions Column -->
+    <div class="col-lg-4 mb-4">
+      <div class="profile-card p-4 text-center">
+        <div class="mb-3">
+          <i class="fas fa-user-circle fa-5x text-danger" style="color: #f84464 !important;"></i>
+        </div>
+        <h4 class="font-weight-bold text-dark mb-1">{{ user.username }}</h4>
+        <p class="text-muted small mb-3">{{ user.email|default:"User Email" }}</p>
+        <div class="d-flex justify-content-center">
+          <a href="{% url 'reset-password' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="fas fa-key me-1 mr-1"></i> Change Password
+          </a>
+        </div>
+      </div>
+
+      <!-- Update Details Form Card -->
+      <div class="profile-card p-4 mt-4">
+        <h5 class="font-weight-bold text-dark mb-3">
+          <i class="fas fa-user-edit text-danger me-2 mr-2" style="color: #f84464 !important;"></i> Edit Details
+        </h5>
+        <form method="POST">
+          {% csrf_token %}
+          {% for field in u_form %}
+            <div class="form-group">
+              <label for="{{ field.id_for_label }}" class="small font-weight-bold text-dark mb-1">{{ field.label }}</label>
+              <input
+                type="{% if field.name == 'email' %}email{% else %}text{% endif %}"
+                name="{{ field.name }}"
+                id="{{ field.id_for_label }}"
+                value="{{ field.value|default:'' }}"
+                class="form-control"
+              >
+              {% for error in field.errors %}
+                <small class="text-danger d-block mt-1">{{ error }}</small>
+              {% endfor %}
+            </div>
+          {% endfor %}
+          <button type="submit" class="btn btn-bms btn-block">
+            <i class="fas fa-save me-1 mr-1"></i> Save Changes
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Tickets History Column -->
+    <div class="col-lg-8">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="font-weight-bold text-dark mb-0" style="font-family: 'Outfit', sans-serif;">
+          <i class="fas fa-ticket-alt text-danger me-2 mr-2" style="color: #f84464 !important;"></i> My Movie Tickets
+        </h4>
+        <span class="badge badge-light border px-3 py-2 font-weight-bold text-dark">
+          Total Bookings: {{ bookings|length }}
+        </span>
+      </div>
+
+      {% if bookings %}
+        <div class="row">
+          {% for booking in bookings %}
+            <div class="col-md-6 mb-4">
+              <div class="ticket-card shadow-sm h-100 d-flex flex-column justify-content-between">
+                <div>
+                  <div class="ticket-stub-header d-flex justify-content-between align-items-center">
+                    <span class="small text-uppercase font-weight-bold text-light">M-Ticket</span>
+                    {% if booking.status == 'BOOKED' %}
+                      <span class="status-badge-booked"><i class="fas fa-check-circle mr-1"></i> Active</span>
+                    {% else %}
+                      <span class="status-badge-cancelled"><i class="fas fa-ban mr-1"></i> Cancelled</span>
+                    {% endif %}
+                  </div>
+                  <div class="p-3">
+                    <h5 class="font-weight-bold text-dark mb-2">{{ booking.movie.name }}</h5>
+                    <p class="small text-muted mb-2">
+                      <i class="fas fa-building text-danger me-1 mr-1" style="color: #f84464 !important;"></i> {{ booking.theater.name }} Cinema<br>
+                      <i class="far fa-clock text-warning me-1 mr-1"></i> {{ booking.theater.time|date:"F d, Y - h:i A" }}
+                    </p>
+                    <div class="d-flex justify-content-between align-items-center bg-light p-2 rounded">
+                      <span class="small font-weight-bold"><i class="fas fa-couch text-success me-1 mr-1"></i> Seat: {{ booking.seat.seat_number }}</span>
+                      <span class="small font-weight-bold text-danger" style="color: #f84464 !important;">₹{{ booking.price|floatformat:0 }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="p-3 bg-white border-top text-right">
+                  {% if booking.status == 'BOOKED' %}
+                    <form method="POST" action="{% url 'cancel_booking' booking.id %}" onsubmit="return confirm('Are you sure you want to cancel seat {{ booking.seat.seat_number }}?');">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-outline-danger btn-sm">
+                        <i class="fas fa-times-circle me-1 mr-1"></i> Cancel Ticket
+                      </button>
+                    </form>
+                  {% else %}
+                    <span class="small text-muted font-italic">Ticket Cancelled</span>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="card p-5 text-center border-0 shadow-sm rounded-lg">
+          <i class="fas fa-ticket-alt fa-4x text-muted mb-3"></i>
+          <h5>No movie tickets booked yet.</h5>
+          <p class="text-muted">Browse our recommended movies and book your preferred seats now!</p>
+          <div class="mt-2">
+            <a href="{% url 'movie_list' %}" class="btn btn-bms">Explore Movies</a>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

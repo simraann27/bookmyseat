@@ -1,0 +1,252 @@
+{% extends "users/basic.html" %}
+
+{% block content %}
+<style>
+  .hero-carousel .carousel-item {
+    height: 380px;
+    background-size: cover;
+    background-position: center;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .hero-overlay {
+    background: linear-gradient(to right, rgba(15, 17, 25, 0.95), rgba(15, 17, 25, 0.3));
+    height: 100%;
+    display: flex;
+    align-items: center;
+    padding: 0 40px;
+    color: #ffffff;
+  }
+  .hero-title {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 2.4rem;
+    margin-bottom: 12px;
+  }
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 35px 0 20px;
+  }
+  .section-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1f2533;
+    margin: 0;
+  }
+  .movie-card {
+    border: none;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #ffffff;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  .movie-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 14px 28px rgba(0,0,0,0.15);
+  }
+  .movie-img-wrap {
+    position: relative;
+    height: 280px;
+    overflow: hidden;
+    background: #e9ecef;
+  }
+  .movie-img-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+  }
+  .movie-card:hover .movie-img-wrap img {
+    transform: scale(1.06);
+  }
+  .rating-badge {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(4px);
+    color: #ffc107;
+    font-weight: 700;
+    font-size: 0.85rem;
+    padding: 4px 10px;
+    border-radius: 6px;
+  }
+  .event-card {
+    border: none;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.06);
+    transition: transform 0.2s ease;
+  }
+  .event-card:hover {
+    transform: translateY(-4px);
+  }
+  .event-card img {
+    height: 180px;
+    object-fit: cover;
+  }
+</style>
+
+<!-- Hero Carousel Banner -->
+<div class="container mt-4">
+  <div id="homeHeroCarousel" class="carousel slide hero-carousel shadow-sm" data-ride="carousel">
+    <ol class="carousel-indicators">
+      <li data-target="#homeHeroCarousel" data-slide-to="0" class="active"></li>
+      <li data-target="#homeHeroCarousel" data-slide-to="1"></li>
+      <li data-target="#homeHeroCarousel" data-slide-to="2"></li>
+    </ol>
+    <div class="carousel-inner">
+      <div class="carousel-item active" style="background-image: url('https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=1200');">
+        <div class="hero-overlay">
+          <div>
+            <span class="badge badge-danger mb-2 px-3 py-2" style="background-color: #f84464;">Now Showing</span>
+            <h1 class="hero-title">Experience Cinema Magic</h1>
+            <p class="lead text-light mb-3">Book instant tickets for the latest blockbusters in Dolby Atmos & IMAX 3D.</p>
+            <a href="{% url 'movie_list' %}" class="btn btn-bms"><i class="fas fa-ticket-alt me-1 mr-1"></i> Browse All Movies</a>
+          </div>
+        </div>
+      </div>
+      <div class="carousel-item" style="background-image: url('https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?q=80&w=1200');">
+        <div class="hero-overlay">
+          <div>
+            <span class="badge badge-warning mb-2 px-3 py-2 text-dark">Exclusive Offers</span>
+            <h1 class="hero-title">Best Seats, Best Prices</h1>
+            <p class="lead text-light mb-3">Reserve your favorite theater seats online with instant confirmation.</p>
+            <a href="{% url 'movie_list' %}" class="btn btn-bms"><i class="fas fa-couch me-1 mr-1"></i> Reserve Seats</a>
+          </div>
+        </div>
+      </div>
+      <div class="carousel-item" style="background-image: url('https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=1200');">
+        <div class="hero-overlay">
+          <div>
+            <span class="badge badge-info mb-2 px-3 py-2">Live Events</span>
+            <h1 class="hero-title">Concerts & Premieres</h1>
+            <p class="lead text-light mb-3">Discover live entertainment, music festivals, and theater shows near you.</p>
+            <a href="{% url 'movie_list' %}" class="btn btn-bms"><i class="fas fa-music me-1 mr-1"></i> Explore Events</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <a class="carousel-control-prev" href="#homeHeroCarousel" role="button" data-slide="prev">
+      <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+    </a>
+    <a class="carousel-control-next" href="#homeHeroCarousel" role="button" data-slide="next">
+      <span class="carousel-control-next-icon" aria-hidden="true"></span>
+    </a>
+  </div>
+</div>
+
+<div class="container mt-4">
+  <!-- Search Quick Bar -->
+  <div class="card p-3 shadow-sm border-0 mb-4" style="border-radius: 12px; background: #ffffff;">
+    <form method="GET" action="{% url 'movie_list' %}" class="row align-items-center">
+      <div class="col-md-9 mb-2 mb-md-0">
+        <div class="input-group">
+          <div class="input-group-prepend">
+            <span class="input-group-text bg-white border-right-0"><i class="fas fa-search text-muted"></i></span>
+          </div>
+          <input type="text" name="search" class="form-control border-left-0" placeholder="Search for movies by title, cast, or genre..." style="height: 46px;">
+        </div>
+      </div>
+      <div class="col-md-3">
+        <button type="submit" class="btn btn-bms btn-block" style="height: 46px;"><i class="fas fa-search me-1 mr-1"></i> Search Movies</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Recommended Movies Section -->
+  <div class="section-header">
+    <h2 class="section-title"><i class="fas fa-film text-danger me-2 mr-2" style="color: #f84464 !important;"></i> Recommended Movies</h2>
+    <a href="{% url 'movie_list' %}" class="text-danger font-weight-bold small text-decoration-none" style="color: #f84464 !important;">See All <i class="fas fa-chevron-right ml-1"></i></a>
+  </div>
+
+  <div class="row">
+    {% if movies %}
+      {% for movie in movies|slice:":4" %}
+      <div class="col-lg-3 col-md-6 mb-4">
+        <div class="movie-card">
+          <div class="movie-img-wrap">
+            {% if movie.image %}
+              <img src="{{ movie.image.url }}" alt="{{ movie.name }}">
+            {% else %}
+              <img src="https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=400" alt="{{ movie.name }}">
+            {% endif %}
+            <div class="rating-badge">
+              <i class="fas fa-star text-warning me-1 mr-1"></i> {{ movie.rating }}/10
+            </div>
+          </div>
+          <div class="p-3 d-flex flex-column flex-grow-1 justify-content-between">
+            <div>
+              <h5 class="font-weight-bold text-dark mb-1" style="font-size: 1.1rem;">{{ movie.name }}</h5>
+              <p class="text-muted small mb-2" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                {{ movie.description|default:"Action, Drama, Thriller" }}
+              </p>
+              <p class="small text-secondary mb-3"><i class="fas fa-user-friends me-1 mr-1"></i> Cast: {{ movie.cast|truncatechars:35 }}</p>
+            </div>
+            <a href="{% url 'theater_list' movie.id %}" class="btn btn-bms btn-block text-center mt-auto">
+              <i class="fas fa-ticket-alt me-1 mr-1"></i> Book Tickets
+            </a>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="col-12 text-center py-5 bg-white rounded shadow-sm">
+        <i class="fas fa-film fa-3x text-muted mb-3"></i>
+        <h5>No movies available right now.</h5>
+        <p class="text-muted">Check back soon or visit the Django Admin to add new movies!</p>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Live Events Section -->
+  <div class="section-header">
+    <h2 class="section-title"><i class="fas fa-calendar-star text-danger me-2 mr-2" style="color: #f84464 !important;"></i> The Best of Live Events</h2>
+  </div>
+  <div class="row">
+    <div class="col-md-3 col-sm-6 mb-3">
+      <div class="event-card bg-white">
+        <img src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=400" class="w-100" alt="Live Music">
+        <div class="p-3">
+          <h6 class="font-weight-bold mb-1">Music Festivals</h6>
+          <small class="text-muted">Live DJ & Concerts</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+      <div class="event-card bg-white">
+        <img src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?q=80&w=400" class="w-100" alt="Standup Comedy">
+        <div class="p-3">
+          <h6 class="font-weight-bold mb-1">Comedy Shows</h6>
+          <small class="text-muted">Standup Comedy Specials</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+      <div class="event-card bg-white">
+        <img src="https://images.unsplash.com/photo-1460723237483-7a6dc9d0b212?q=80&w=400" class="w-100" alt="Theater Plays">
+        <div class="p-3">
+          <h6 class="font-weight-bold mb-1">Drama & Plays</h6>
+          <small class="text-muted">Live Stage Performances</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+      <div class="event-card bg-white">
+        <img src="https://images.unsplash.com/photo-1501386761578-eac5c94b800a?q=80&w=400" class="w-100" alt="Sports Screenings">
+        <div class="p-3">
+          <h6 class="font-weight-bold mb-1">Sports Screenings</h6>
+          <small class="text-muted">Stadium Atmosphere</small>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

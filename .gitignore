@@ -1,0 +1,12 @@
+# Python / Virtual Environment
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Static / Media / Local DB
+staticfiles/
+.vercel/
+
+# Environment Variables
+.env

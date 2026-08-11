@@ -1,0 +1,327 @@
+{% extends "users/basic.html" %}
+
+{% block title %}Select Seats - {{ theater.movie.name }} - BookMySeat{% endblock %}
+
+{% block content %}
+<style>
+  .seat-picker-header {
+    background: #1f2533;
+    color: #ffffff;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+  .cinema-screen-container {
+    perspective: 400px;
+    margin: 30px 0 40px;
+  }
+  .cinema-screen {
+    background: linear-gradient(to bottom, #dbe2ef, #ffffff);
+    height: 40px;
+    width: 80%;
+    margin: 0 auto;
+    transform: rotateX(-30deg);
+    box-shadow: 0 10px 30px rgba(255, 255, 255, 0.7);
+    border-radius: 6px;
+    text-align: center;
+    line-height: 40px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: #666e85;
+    border-top: 3px solid #f84464;
+  }
+  .seats-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: 540px;
+    margin: 0 auto 30px;
+    gap: 8px;
+  }
+  .seat-box {
+    width: 42px;
+    height: 42px;
+    border: 1.5px solid #28a745;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #28a745;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s ease;
+    background: #ffffff;
+  }
+  .seat-box:hover:not(.sold) {
+    background: #28a745;
+    color: #ffffff;
+    transform: scale(1.1);
+  }
+  .seat-box.selected {
+    background: #f84464 !important;
+    border-color: #f84464 !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 10px rgba(248, 68, 100, 0.4);
+  }
+  .seat-box.sold {
+    background: #e9ecef !important;
+    border-color: #ced4da !important;
+    color: #adb5bd !important;
+    cursor: not-allowed;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+  .legend-sample {
+    width: 22px;
+    height: 22px;
+    border-radius: 4px;
+    margin-right: 8px;
+  }
+  .booking-summary-bar {
+    position: sticky;
+    bottom: 20px;
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 16px 24px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+    z-index: 100;
+  }
+</style>
+
+<div class="container py-4">
+  <!-- Show Header -->
+  <div class="seat-picker-header shadow-sm">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center">
+      <div>
+        <h3 class="font-weight-bold text-white mb-1">{{ theater.movie.name }}</h3>
+        <p class="text-light opacity-90 mb-0">
+          <i class="fas fa-building text-danger me-1 mr-1" style="color: #f84464 !important;"></i> {{ theater.name }} Cinema
+          <span class="mx-2">|</span>
+          <i class="far fa-clock text-warning me-1 mr-1"></i> {{ theater.time|date:"F d, Y - h:i A" }}
+        </p>
+      </div>
+      <div class="mt-3 mt-md-0">
+        <span class="badge badge-success px-3 py-2 font-weight-bold" style="font-size: 0.95rem;">
+          ₹<span id="ticketPriceVal">{{ theater.price|floatformat:0 }}</span> / Ticket
+        </span>
+      </div>
+    </div>
+  </div>
+
+  {% if error %}
+  <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+    <i class="fas fa-exclamation-triangle me-2 mr-2"></i> {{ error }}
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  {% endif %}
+
+  <!-- Main Seat Grid Card -->
+  <div class="card border-0 shadow-sm rounded-lg p-4 mb-4">
+    <!-- Screen View -->
+    <div class="cinema-screen-container">
+      <div class="cinema-screen">SCREEN THIS WAY</div>
+    </div>
+
+    <!-- Form & Seat Grid -->
+    <form id="seatBookingForm" method="POST">
+      {% csrf_token %}
+
+      <div class="seats-grid">
+        {% for seat in seats %}
+          <div
+            class="seat-box {% if seat.is_booked %}sold{% endif %}"
+            data-seat-id="{{ seat.id }}"
+            data-seat-number="{{ seat.seat_number }}"
+          >
+            {% if not seat.is_booked %}
+              <input
+                type="checkbox"
+                name="seats"
+                value="{{ seat.id }}"
+                class="d-none seat-checkbox"
+                id="seat-check-{{ seat.id }}"
+              />
+            {% endif %}
+            <span>{{ seat.seat_number }}</span>
+          </div>
+        {% endfor %}
+      </div>
+
+      <!-- Legend -->
+      <div class="d-flex justify-content-center flex-wrap mb-4" style="gap: 24px;">
+        <div class="legend-item">
+          <div class="legend-sample" style="border: 1.5px solid #28a745; background: #ffffff;"></div>
+          <span>Available</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-sample" style="background: #f84464;"></div>
+          <span>Selected</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-sample" style="background: #e9ecef; border: 1px solid #ced4da;"></div>
+          <span>Sold / Booked</span>
+        </div>
+      </div>
+
+      <!-- Sticky Summary & Payment Trigger Bar -->
+      <div class="booking-summary-bar border">
+        <div class="row align-items-center">
+          <div class="col-md-7 mb-2 mb-md-0">
+            <small class="text-muted text-uppercase font-weight-bold d-block">Selected Seats (<span id="seatCount">0</span>)</small>
+            <h5 class="font-weight-bold text-dark mb-0" id="selectedSeatsList">None</h5>
+          </div>
+          <div class="col-md-5 text-md-right">
+            <span class="h4 font-weight-bold text-dark mr-3 mb-0 align-middle">
+              Total: <span class="text-danger" style="color: #f84464 !important;">₹<span id="totalAmount">0</span></span>
+            </span>
+            <button
+              type="button"
+              id="proceedToPayBtn"
+              class="btn btn-bms btn-lg"
+              disabled
+              data-toggle="modal"
+              data-target="#paymentModal"
+            >
+              <i class="fas fa-credit-card me-1 mr-1"></i> Proceed to Pay
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Payment Simulation Modal -->
+      <div class="modal fade" id="paymentModal" tabindex="-1" role="dialog" aria-labelledby="paymentModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+          <div class="modal-content border-0 shadow-lg" style="border-radius: 12px;">
+            <div class="modal-header bg-dark text-white" style="border-top-left-radius: 12px; border-top-right-radius: 12px;">
+              <h5 class="modal-title font-weight-bold" id="paymentModalLabel">
+                <i class="fas fa-lock text-success me-2 mr-2"></i> Secure Checkout
+              </h5>
+              <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body p-4">
+              <div class="bg-light p-3 rounded mb-3">
+                <div class="d-flex justify-content-between mb-1">
+                  <span class="text-muted">Movie:</span>
+                  <strong class="text-dark">{{ theater.movie.name }}</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-1">
+                  <span class="text-muted">Seats:</span>
+                  <strong class="text-dark" id="modalSeatSummary">-</strong>
+                </div>
+                <hr class="my-2">
+                <div class="d-flex justify-content-between">
+                  <span class="font-weight-bold">Amount Payable:</span>
+                  <strong class="text-danger h5 mb-0" style="color: #f84464 !important;">₹<span id="modalTotalSummary">0</span></strong>
+                </div>
+              </div>
+
+              <h6 class="font-weight-bold mb-3">Select Payment Method</h6>
+              <div class="form-check mb-2 p-2 border rounded">
+                <input class="form-check-input ml-1" type="radio" name="paymentOption" id="payUPI" checked>
+                <label class="form-check-label ml-4 font-weight-bold" for="payUPI">
+                  <i class="fas fa-qrcode text-primary me-1 mr-1"></i> UPI (Google Pay / PhonePe / Paytm)
+                </label>
+              </div>
+              <div class="form-check mb-3 p-2 border rounded">
+                <input class="form-check-input ml-1" type="radio" name="paymentOption" id="payCard">
+                <label class="form-check-label ml-4 font-weight-bold" for="payCard">
+                  <i class="fas fa-credit-card text-success me-1 mr-1"></i> Credit / Debit Card
+                </label>
+              </div>
+
+              <button type="submit" class="btn btn-bms btn-block btn-lg mt-3" id="confirmBookingSubmit">
+                <i class="fas fa-check-circle me-1 mr-1"></i> Confirm & Book Tickets
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var ticketPriceVal = document.getElementById('ticketPriceVal');
+    var ticketPrice = ticketPriceVal ? (parseFloat(ticketPriceVal.textContent) || 250) : 250;
+
+    var seatBoxes = document.querySelectorAll('.seat-box:not(.sold)');
+    seatBoxes.forEach(function(box) {
+      box.addEventListener('click', function(e) {
+        var checkbox = box.querySelector('.seat-checkbox');
+        var isSelected = box.classList.contains('selected');
+        
+        if (isSelected) {
+          box.classList.remove('selected');
+          if (checkbox) checkbox.checked = false;
+        } else {
+          box.classList.add('selected');
+          if (checkbox) checkbox.checked = true;
+        }
+        updateSummary();
+      });
+    });
+
+    var confirmBtn = document.getElementById('confirmBookingSubmit');
+    var form = document.getElementById('seatBookingForm');
+    if (confirmBtn && form) {
+      confirmBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        form.submit();
+      });
+    }
+
+    function updateSummary() {
+      var selectedBoxes = document.querySelectorAll('.seat-box.selected');
+      var selectedSeatNumbers = [];
+      selectedBoxes.forEach(function(b) {
+        var num = b.getAttribute('data-seat-number');
+        if (num) selectedSeatNumbers.push(num);
+      });
+
+      var count = selectedSeatNumbers.length;
+      var total = count * ticketPrice;
+
+      var seatCountEl = document.getElementById('seatCount');
+      var totalAmountEl = document.getElementById('totalAmount');
+      var selectedSeatsListEl = document.getElementById('selectedSeatsList');
+      var modalSeatSummaryEl = document.getElementById('modalSeatSummary');
+      var modalTotalSummaryEl = document.getElementById('modalTotalSummary');
+      var proceedToPayBtn = document.getElementById('proceedToPayBtn');
+
+      if (seatCountEl) seatCountEl.textContent = count;
+      if (totalAmountEl) totalAmountEl.textContent = total;
+
+      if (count > 0) {
+        if (selectedSeatsListEl) selectedSeatsListEl.textContent = selectedSeatNumbers.join(', ');
+        if (modalSeatSummaryEl) modalSeatSummaryEl.textContent = selectedSeatNumbers.join(', ');
+        if (modalTotalSummaryEl) modalTotalSummaryEl.textContent = total;
+        if (proceedToPayBtn) {
+          proceedToPayBtn.disabled = false;
+          proceedToPayBtn.removeAttribute('disabled');
+        }
+      } else {
+        if (selectedSeatsListEl) selectedSeatsListEl.textContent = 'None';
+        if (modalSeatSummaryEl) modalSeatSummaryEl.textContent = '-';
+        if (modalTotalSummaryEl) modalTotalSummaryEl.textContent = '0';
+        if (proceedToPayBtn) {
+          proceedToPayBtn.disabled = true;
+          proceedToPayBtn.setAttribute('disabled', 'disabled');
+        }
+      }
+    }
+  });
+</script>
+{% endblock %}

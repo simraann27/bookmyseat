@@ -1,0 +1,154 @@
+{% extends "users/basic.html" %}
+
+{% block title %}All Movies - BookMySeat{% endblock %}
+
+{% block content %}
+<style>
+  .movie-card {
+    border: none;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #ffffff;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  .movie-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 16px 32px rgba(0,0,0,0.15);
+  }
+  .poster-container {
+    position: relative;
+    height: 320px;
+    overflow: hidden;
+    background-color: #212529;
+  }
+  .poster-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+  }
+  .movie-card:hover .poster-container img {
+    transform: scale(1.08);
+  }
+  .rating-tag {
+    position: absolute;
+    bottom: 12px;
+    left: 12px;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(4px);
+    color: #ffc107;
+    font-weight: 700;
+    font-size: 0.9rem;
+    padding: 4px 12px;
+    border-radius: 6px;
+  }
+</style>
+
+<div class="container py-4">
+  <!-- Page Header -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+    <div>
+      <h2 class="font-weight-bold text-dark mb-1" style="font-family: 'Outfit', sans-serif;">
+        <i class="fas fa-film text-danger me-2 mr-2" style="color: #f84464 !important;"></i> Explore Movies
+      </h2>
+      <p class="text-muted mb-0">Browse latest releases, ratings, and reserve showtime tickets.</p>
+    </div>
+    <div class="mt-3 mt-md-0">
+      <span class="badge badge-light px-3 py-2 border shadow-sm text-dark font-weight-bold">
+        Showing {{ movies|length }} Movies
+      </span>
+    </div>
+  </div>
+
+  <!-- Search Filter Bar -->
+  <div class="card p-3 shadow-sm border-0 mb-4" style="border-radius: 12px;">
+    <form method="GET" action="{% url 'movie_list' %}" class="row align-items-center">
+      <div class="col-md-10 mb-2 mb-md-0">
+        <div class="input-group">
+          <div class="input-group-prepend">
+            <span class="input-group-text bg-white border-right-0"><i class="fas fa-search text-muted"></i></span>
+          </div>
+          <input
+            type="text"
+            id="movieSearchInput"
+            name="search"
+            class="form-control border-left-0"
+            placeholder="Search by movie title, genre, or cast member..."
+            value="{{ request.GET.search|default_if_none:'' }}"
+            style="height: 48px;"
+          />
+        </div>
+      </div>
+      <div class="col-md-2">
+        <button type="submit" class="btn btn-bms btn-block" style="height: 48px;">
+          Search
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Movies Grid -->
+  <div class="row" id="movieGrid">
+    {% for movie in movies %}
+    <div class="col-lg-4 col-md-6 mb-4 movie-item">
+      <div class="movie-card">
+        <div class="poster-container">
+          {% if movie.image %}
+            <img src="{{ movie.image.url }}" alt="{{ movie.name }}">
+          {% else %}
+            <img src="https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=400" alt="{{ movie.name }}">
+          {% endif %}
+          <div class="rating-tag">
+            <i class="fas fa-star text-warning me-1 mr-1"></i> {{ movie.rating }}/10
+          </div>
+        </div>
+        <div class="p-4 d-flex flex-column flex-grow-1 justify-content-between">
+          <div>
+            <h4 class="movie-title font-weight-bold text-dark mb-2" style="font-size: 1.25rem;">{{ movie.name }}</h4>
+            <p class="text-muted small mb-3" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+              {{ movie.description|default:"An exciting movie experience featuring top performances and thrilling storyline." }}
+            </p>
+            <div class="small text-secondary mb-3">
+              <i class="fas fa-user-friends text-danger me-1 mr-1" style="color: #f84464 !important;"></i>
+              <strong>Cast:</strong> {{ movie.cast }}
+            </div>
+          </div>
+          <div class="pt-3 border-top mt-auto">
+            <a href="{% url 'theater_list' movie.id %}" class="btn btn-bms btn-block">
+              <i class="fas fa-ticket-alt me-1 mr-1"></i> View Theaters & Showtimes
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center py-5 bg-white rounded shadow-sm">
+      <i class="fas fa-film fa-4x text-muted mb-3"></i>
+      <h4>No movies found</h4>
+      <p class="text-muted">Try adjusting your search criteria or check back later.</p>
+      <a href="{% url 'movie_list' %}" class="btn btn-outline-danger btn-sm mt-2">Clear Search Filter</a>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<script>
+  $(document).ready(function() {
+    $('#movieSearchInput').on('input', function() {
+      var query = $(this).val().toLowerCase().trim();
+      $('.movie-item').each(function() {
+        var title = $(this).find('.movie-title').text().toLowerCase();
+        if (title.indexOf(query) !== -1 || query === '') {
+          $(this).show();
+        } else {
+          $(this).hide();
+        }
+      });
+    });
+  });
+</script>
+{% endblock %}
